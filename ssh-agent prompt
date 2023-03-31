@@ -1,0 +1,30 @@
+# Add this to your .bashrc
+
+# SSH AGENT - Will prompt for pw one time
+SSH_ENV="$HOME/.ssh/environment"
+
+function start_agent {
+    echo "Initialising new SSH agent..."
+    /usr/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+    echo succeeded
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
+    /usr/bin/ssh-add;
+}
+
+# Source SSH settings, if applicable
+if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}" > /dev/null
+    # Check if the agent is running
+    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+        start_agent;
+    }
+else
+    start_agent;
+fi
+
+# Check if the key is already added to the agent
+if ! /usr/bin/ssh-add -l >/dev/null; then
+    # If not, add the key to the agent (this will prompt for the passphrase if needed)
+    /usr/bin/ssh-add
+fi

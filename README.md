@@ -8,6 +8,3 @@ bash Copy code
   
   git clone https://github.com/<username>/Helpers.git
 
-Contents
-
-python/

@@ -8,6 +8,16 @@
 # CloudWatch metrics are utilized for efficiency, especially with large buckets
 # The script then estimates monthly costs based on the standard storage class pricing
 
+#!/bin/env bash
+
+# Bucket Size Analyzer and Cost Estimator
+# Author: AJG
+
+# This script fetches the sizes of all S3 buckets in GB using CloudWatch metrics
+# CloudWatch metrics are utilized for efficiency, especially with large buckets
+# The script then estimates monthly costs based on the standard storage class pricing
+# Error handling is included for cases where size data is unavailable
+
 s3_buckets=$(aws s3api list-buckets --query 'Buckets[*].Name' --output text)
 for current_bucket in $s3_buckets; do
     bucket_region=$(aws s3api get-bucket-location --bucket $current_bucket --query 'LocationConstraint' --output text)
@@ -29,12 +39,17 @@ for current_bucket in $s3_buckets; do
         --output text \
         --query 'Datapoints[0].Average')
     
-    # Convert bytes to GB
-    bucket_size_gb=$(echo "scale=2; $bucket_size_bytes / 1024 / 1024 / 1024" | bc)
-    
-    # Calculate estimated monthly cost (assuming $0.023 per GB)
-    estimated_monthly_cost=$(echo "scale=2; $bucket_size_gb * 0.023" | bc | awk '{printf "%.2f\n", $0}')
-    
-    # Output results
-    echo "$current_bucket: $bucket_size_gb GB | \$$estimated_monthly_cost USD/Month"
+    # Check if bucket_size_bytes is a valid number
+    if [[ $bucket_size_bytes =~ ^[0-9]+([.][0-9]+)?$ ]]; then
+        # Convert bytes to GB
+        bucket_size_gb=$(echo "scale=2; $bucket_size_bytes / 1024 / 1024 / 1024" | bc)
+        
+        # Calculate estimated monthly cost (assuming $0.023 per GB)
+        estimated_monthly_cost=$(echo "scale=2; $bucket_size_gb * 0.023" | bc | awk '{printf "%.2f\n", $0}')
+        
+        # Output results
+        echo "$current_bucket: $bucket_size_gb GB | \$$estimated_monthly_cost USD/Month"
+    else
+        echo "$current_bucket: Size data unavailable"
+    fi
 done

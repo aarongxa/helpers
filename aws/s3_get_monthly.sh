@@ -7,15 +7,6 @@
 # This script fetches the sizes of all S3 buckets in GB using CloudWatch metrics
 # CloudWatch metrics are utilized for efficiency, especially with large buckets
 # The script then estimates monthly costs based on the standard storage class pricing
-
-#!/bin/env bash
-
-# Bucket Size Analyzer and Cost Estimator
-# Author: AJG
-
-# This script fetches the sizes of all S3 buckets in GB using CloudWatch metrics
-# CloudWatch metrics are utilized for efficiency, especially with large buckets
-# The script then estimates monthly costs based on the standard storage class pricing
 # Error handling is included for cases where size data is unavailable
 
 s3_buckets=$(aws s3api list-buckets --query 'Buckets[*].Name' --output text)
